@@ -38,11 +38,8 @@ if [ "$OS_TYPE" == "centos" ]; then
         echo "[STEP EXTRA] Configuring firewall to allow HTTP and HTTPS..."
     } >> $LOG_FILE
 
-    # Add firewalld rules for HTTP and HTTPS traffic
     firewall-cmd --permanent --add-service=http
     firewall-cmd --permanent --add-service=https
-
-    # Reload the firewall to apply the changes
     firewall-cmd --reload
 
     {
@@ -129,12 +126,10 @@ $PKG_MANAGER install -y $PHP_PACKAGE >> /tmp/init-script.log
 } >> $LOG_FILE
 
 if [ "$OS_TYPE" == "centos" ]; then
-    # Enable and start Apache on CentOS
     systemctl enable $APACHE_SERVICE
     systemctl start $APACHE_SERVICE
     systemctl restart $APACHE_SERVICE
 else
-    # Restart Apache for Debian-based systems
     systemctl restart $APACHE_SERVICE
 fi
 
@@ -213,14 +208,55 @@ rm -f /var/www/html/index.html
     echo ""
 } >> $LOG_FILE
 
-# --- Add a pause (sleep) before the Apache restart ---
-#{
-#    echo "[STEP 11] Pausing before restarting Apache..."
-#} >> $LOG_FILE
+# --- Add WP-CLI Installation ---
+{
+    echo "[STEP 11] Installing WP-CLI..."
+} >> $LOG_FILE
 
-sleep 5  # Adding a 5-second delay to give Apache a moment to settle
+cd /usr/local/bin
+curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+chmod +x wp-cli.phar
+mv wp-cli.phar wp
 
-# --- Restart Apache to apply all changes ---
+{
+    echo "[STEP 11] WP-CLI installed."
+    echo ""
+} >> $LOG_FILE
+
+# --- WordPress CLI Installation Setup ---
+
+# Define variables for the WordPress admin account
+WP_SITE_URL="http://$(hostname -I | awk '{print $1}')"
+WP_TITLE="Auto-Installed WordPress Site"
+WP_ADMIN_USERNAME="admin"
+WP_ADMIN_PASSWORD="yourStrongAdminPassword"
+WP_ADMIN_EMAIL="admin@example.com"
+
+# Use WP-CLI to configure WordPress directly
+{
+    echo "[STEP 12] Running WordPress setup via WP-CLI..."
+} >> $LOG_FILE
+
+# Run the WordPress installation using WP-CLI
+cd /var/www/html
+
+sudo -u www-data wp core install \
+    --url="$WP_SITE_URL" \
+    --title="$WP_TITLE" \
+    --admin_user="$WP_ADMIN_USERNAME" \
+    --admin_password="$WP_ADMIN_PASSWORD" \
+    --admin_email="$WP_ADMIN_EMAIL" \
+    >> /tmp/init-script.log 2>&1
+
+{
+    echo "[STEP 12] WordPress setup via WP-CLI completed."
+    echo ""
+} >> $LOG_FILE
+
+# Optional: Remove WP-CLI if you don't need it after the installation
+rm -f /usr/local/bin/wp
+
+# --- Restart Apache to apply final changes ---
 {
     echo "[STEP 10] Restarting Apache to apply changes..."
 } >> $LOG_FILE
@@ -240,19 +276,13 @@ SITE_URL="http://$SITE_IP"
 # --- Save WordPress Details to Log File ---
 {
     echo "==============================="
-    echo "🎉 WordPress Installation Completed!"
+    echo "🎉 WordPress Installation Fully Completed!"
     echo ""
-    echo "Your WordPress site has been successfully installed, but you need to finalise the installation."
+    echo "You can now log into WordPress at the following URL using the preconfigured admin credentials:"
+    echo "    Admin URL: $ADMIN_URL"
     echo ""
-    echo "To complete the installation, visit the following URL:"
-    echo "    $SITE_URL"
-    echo "Then follow the instructions to set up your admin account and site."
+    echo "Admin Username: $WP_ADMIN_USERNAME"
+    echo "Admin Password: $WP_ADMIN_PASSWORD"
     echo ""
     echo "==============================="
-    echo "WordPress Setup Details"
-    echo "==============================="
-    echo "Site URL: $SITE_URL"
-    echo "Admin Login URL: $ADMIN_URL"
-    echo ""
-    echo "Now go build an awesome website!"
 } >> $LOG_FILE
