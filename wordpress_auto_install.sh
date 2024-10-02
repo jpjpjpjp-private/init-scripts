@@ -229,7 +229,7 @@ mv wp-cli.phar wp
 WP_SITE_URL="http://$(hostname -I | awk '{print $1}')"
 WP_TITLE="Auto-Installed WordPress Site"
 WP_ADMIN_USERNAME="admin"
-WP_ADMIN_PASSWORD="yourStrongAdminPassword"
+WP_ADMIN_PASSWORD=$WORDPRESS_PASSWORD
 WP_ADMIN_EMAIL="admin@example.com"
 
 # Use WP-CLI to configure WordPress directly
