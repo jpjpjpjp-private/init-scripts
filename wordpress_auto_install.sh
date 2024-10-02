@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # === WordPress Auto-Installation Script for both Debian and CentOS ===
 
 # Detect operating system type (Debian/Ubuntu or CentOS/RHEL)
