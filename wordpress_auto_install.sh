@@ -282,7 +282,7 @@ SITE_URL="http://$SITE_IP"
     echo "    Admin URL: $ADMIN_URL"
     echo ""
     echo "Admin Username: $WP_ADMIN_USERNAME"
-    echo "Admin Password: $WP_ADMIN_PASSWORD"
+    echo "Admin Password: (redacted)"
     echo ""
     echo "==============================="
 } >> $LOG_FILE
